@@ -5,6 +5,7 @@ import pgclient from "./config/db.js";
 
 import companyFiltersRoutes from "./routes/companyFiltersRoutes.js";
 import companyUniqueFiltersRoutes from "./routes/companyUniqueFiltersRoutes.js";
+import locationRoutes from "./routes/locationRoutes.js";
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/company-filters", companyFiltersRoutes);
 app.use("/api/company-unique-filters", companyUniqueFiltersRoutes);
+app.use("/api/locations", locationRoutes);
 
 const PORT = process.env.PORT || 3000;
 
