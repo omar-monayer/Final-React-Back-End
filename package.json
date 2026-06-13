@@ -1,0 +1,24 @@
+{
+  "name": "final-react-back-end",
+  "version": "1.0.0",
+  "description": "Nexsus App",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/omar-monayer/Final-React-Back-End.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/omar-monayer/Final-React-Back-End/issues"
+  },
+  "homepage": "https://github.com/omar-monayer/Final-React-Back-End#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
