@@ -11,6 +11,7 @@ import sizeRoutes from "./routes/sizeRoutes.js";
 import jobTitleRoutes from "./routes/jobTitleRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import adminAuth from "./middleware/adminAuth.js";
+import userHomeRoutes from "./routes/userHomeRoutes.js";
 
 
 dotenv.config();
@@ -40,6 +41,7 @@ app.use("/api/industries", adminAuth, industryRoutes);
 app.use("/api/sizes", adminAuth, sizeRoutes);
 app.use("/api/job-titles", adminAuth, jobTitleRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/user", userHomeRoutes);
 
 const PORT = process.env.PORT || 3000;
 
