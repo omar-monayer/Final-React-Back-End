@@ -61,12 +61,6 @@ router.get("/dashboard-companies", async (req, res) => {
 router.get("/companies", async (req, res) => {
   const { coflId, email } = req.query;
 
-  if (!coflId) {
-    return res.status(400).json({
-      message: "Company filter ID is required",
-    });
-  }
-
   if (!email) {
     return res.status(400).json({
       message: "User email is required",
@@ -74,40 +68,48 @@ router.get("/companies", async (req, res) => {
   }
 
   try {
-   const result = await pgclient.query(
-  `
-  SELECT 
-    cs.comsc_id AS "id",
-    cs.comsc_universal_name AS "companyName",
-    cs.comsc_linkedin_url AS "linkedinUrl",
-    cs.comsc_website_url AS "websiteUrl",
+    const values = [email];
 
-    LEFT(COALESCE(cs.comsc_about, ''), 80) AS "aboutShort",
-    cs.comsc_about AS "aboutFull"
+    let coflCondition = "";
 
-  FROM userslogin ul
-  INNER JOIN company c
-    ON c.user_id = ul.user_id
-  INNER JOIN company_filters cf
-    ON cf.comp_id = c.comp_id
-  INNER JOIN company_scraping_info csi
-    ON csi.cofl_id = cf.cofl_id
-  INNER JOIN company_scraping cs
-    ON cs.comsc_id = csi.comsc_id
+    if (coflId) {
+      values.push(Number(coflId));
+      coflCondition = `AND cf.cofl_id = $2`;
+    }
 
-  WHERE LOWER(TRIM(ul.email)) = LOWER(TRIM($1))
-    AND cf.cofl_id = $2
-    AND c.deleted = 0
-    AND cf.deleted = 0
-    AND csi.deleted = 0
-    AND cs.deleted = 0
+    const result = await pgclient.query(
+      `
+      SELECT DISTINCT ON (cs.comsc_id)
+        cs.comsc_id AS "id",
+        cs.comsc_universal_name AS "companyName",
+        cs.comsc_linkedin_url AS "linkedinUrl",
+        cs.comsc_website_url AS "websiteUrl",
 
-  ORDER BY cs.comsc_id DESC
-  LIMIT 10;;
-  `,
-  [email, Number(coflId)]
-);
+        LEFT(COALESCE(cs.comsc_about, ''), 80) AS "aboutShort",
+        cs.comsc_about AS "aboutFull"
 
+      FROM userslogin ul
+      INNER JOIN company c
+        ON c.user_id = ul.user_id
+      INNER JOIN company_filters cf
+        ON cf.comp_id = c.comp_id
+      INNER JOIN company_scraping_info csi
+        ON csi.cofl_id = cf.cofl_id
+      INNER JOIN company_scraping cs
+        ON cs.comsc_id = csi.comsc_id
+
+      WHERE LOWER(TRIM(ul.email)) = LOWER(TRIM($1))
+        ${coflCondition}
+        AND c.deleted = 0
+        AND cf.deleted = 0
+        AND csi.deleted = 0
+        AND cs.deleted = 0
+
+      ORDER BY cs.comsc_id DESC
+      LIMIT 10;
+      `,
+      values
+    );
 
     res.json(result.rows);
   } catch (error) {
@@ -115,6 +117,79 @@ router.get("/companies", async (req, res) => {
 
     res.status(500).json({
       message: "Failed to get companies",
+    });
+  }
+});
+
+router.get("/leads", async (req, res) => {
+  const { email, comscId } = req.query;
+
+  if (!email) {
+    return res.status(400).json({
+      message: "User email is required",
+    });
+  }
+
+  if (!comscId) {
+    return res.status(400).json({
+      message: "Company scraping ID is required",
+    });
+  }
+
+  try {
+    const result = await pgclient.query(
+      `
+      SELECT
+        l.lead_id AS "id",
+        l.lead_full_name AS "name",
+        l.lead_email AS "email",
+        l.lead_email AS "emailAddress",
+        l.lead_job_title AS "position",
+        l.lead_linkedin_profile_url AS "linkedinUrl",
+        l.comsc_id AS "companyScrapingId",
+
+        cs.comsc_universal_name AS "companyName",
+
+        lcs.leco_last_contacted AS "lastContacted",
+        lcs.leco_opened AS "opened",
+        lcs.leco_clicked AS "clicked",
+        lcs.leco_email AS "emailContent",
+        lcs.leco_email_subject AS "emailSubject"
+
+      FROM userslogin ul
+      INNER JOIN company c
+        ON c.user_id = ul.user_id
+      INNER JOIN company_filters cf
+        ON cf.comp_id = c.comp_id
+      INNER JOIN company_scraping_info csi
+        ON csi.cofl_id = cf.cofl_id
+      INNER JOIN company_scraping cs
+        ON cs.comsc_id = csi.comsc_id
+      INNER JOIN leads l
+        ON l.comsc_id = cs.comsc_id
+      LEFT JOIN lead_company_scraping lcs
+        ON lcs.lead_id = l.lead_id
+
+      WHERE LOWER(TRIM(ul.email)) = LOWER(TRIM($1))
+        AND cs.comsc_id = $2
+        AND c.deleted = 0
+        AND cf.deleted = 0
+        AND csi.deleted = 0
+        AND cs.deleted = 0
+        AND l.deleted = 0
+
+      ORDER BY l.lead_id DESC
+      LIMIT 10;
+      `,
+      [email, Number(comscId)]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Error getting user leads:", error);
+
+    res.status(500).json({
+      message: "Failed to get leads",
     });
   }
 });
