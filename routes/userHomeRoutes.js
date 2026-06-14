@@ -130,16 +130,19 @@ router.get("/leads", async (req, res) => {
     });
   }
 
-  if (!comscId) {
-    return res.status(400).json({
-      message: "Company scraping ID is required",
-    });
-  }
-
   try {
+    const values = [email];
+
+    let comscCondition = "";
+
+    if (comscId) {
+      values.push(Number(comscId));
+      comscCondition = `AND cs.comsc_id = $2`;
+    }
+
     const result = await pgclient.query(
       `
-      SELECT
+      SELECT DISTINCT ON (l.lead_id)
         l.lead_id AS "id",
         l.lead_full_name AS "name",
         l.lead_email AS "email",
@@ -171,17 +174,17 @@ router.get("/leads", async (req, res) => {
         ON lcs.lead_id = l.lead_id
 
       WHERE LOWER(TRIM(ul.email)) = LOWER(TRIM($1))
-        AND cs.comsc_id = $2
+        ${comscCondition}
         AND c.deleted = 0
         AND cf.deleted = 0
         AND csi.deleted = 0
         AND cs.deleted = 0
         AND l.deleted = 0
+        AND lcs.leco_email IS NOT NULL
 
-      ORDER BY l.lead_id DESC
-      LIMIT 10;
+      ORDER BY l.lead_id DESC, lcs.leco_last_contacted DESC NULLS LAST;
       `,
-      [email, Number(comscId)]
+      values
     );
 
     res.json(result.rows);
