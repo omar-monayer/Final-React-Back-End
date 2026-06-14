@@ -9,6 +9,9 @@ import locationRoutes from "./routes/locationRoutes.js";
 import industryRoutes from "./routes/industryRoutes.js";
 import sizeRoutes from "./routes/sizeRoutes.js";
 import jobTitleRoutes from "./routes/jobTitleRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+import adminAuth from "./middleware/adminAuth.js";
+
 
 dotenv.config();
 
@@ -20,16 +23,23 @@ app.use(cors({
 
 app.use(express.json());
 
+app.get("/api/admin/check", adminAuth, (req, res) => {
+  res.json({
+    message: "Admin access allowed",
+  });
+});
+
 app.get("/", (req, res) => {
   res.send("API server is running");
 });
 
-app.use("/api/company-filters", companyFiltersRoutes);
-app.use("/api/company-unique-filters", companyUniqueFiltersRoutes);
-app.use("/api/locations", locationRoutes);
-app.use("/api/industries", industryRoutes);
-app.use("/api/sizes", sizeRoutes);
-app.use("/api/job-titles", jobTitleRoutes);
+app.use("/api/company-filters", adminAuth, companyFiltersRoutes);
+app.use("/api/company-unique-filters",adminAuth, companyUniqueFiltersRoutes);
+app.use("/api/locations",adminAuth, locationRoutes);
+app.use("/api/industries", adminAuth, industryRoutes);
+app.use("/api/sizes", adminAuth, sizeRoutes);
+app.use("/api/job-titles", adminAuth, jobTitleRoutes);
+app.use("/api/auth", authRoutes);
 
 const PORT = process.env.PORT || 3000;
 
