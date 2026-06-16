@@ -19,9 +19,14 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors({
-  origin: "http://localhost:5173",
-}));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://final-react-front-end-production.up.railway.app",
+    ],
+  })
+);
 
 app.use(express.json());
 
