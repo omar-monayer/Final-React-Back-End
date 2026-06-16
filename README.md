@@ -1,8 +1,14 @@
-# Nexsus Backend (Express + PostgreSQL)
+# Nexsus Backend
 
 This is the backend API server for the Nexsus fullstack web application.
 
-It provides APIs for authentication, admin management, company filters, company unique filters, locations, industries, sizes, job titles, weather data, dashboard companies, companies, and leads.
+The backend is built with Node.js, Express.js, and PostgreSQL. It handles authentication, admin management, company filters, company unique filters, locations, industries, sizes, job titles, user dashboard data, user companies, user leads, and weather data.
+
+## Repository
+
+```bash id="repo-origin"
+https://github.com/omar-monayer/Final-React-Back-End.git
+```
 
 ## Tech Stack
 
@@ -13,54 +19,90 @@ It provides APIs for authentication, admin management, company filters, company 
 * dotenv
 * cors
 
+## Features
+
+* User login
+* Role-based admin protection
+* PostgreSQL database connection
+* Admin CRUD operations
+* User dashboard API
+* User companies API
+* User leads API
+* Weather API for Amman
+* Soft delete support for admin data
+
 ## Getting Started
 
-Clone the repository from the origin:
+Clone the repository:
 
-```bash
+```bash id="clone-repo"
 git clone https://github.com/omar-monayer/Final-React-Back-End.git
 ```
 
 Go inside the project folder:
 
-```bash
+```bash id="cd-repo"
 cd Final-React-Back-End
 ```
 
 Install dependencies:
 
-```bash
+```bash id="install-deps"
 npm install
 ```
 
 Create a `.env` file in the root folder:
 
-```bash
+```bash id="env-file"
 DATABASE_URL=your_postgresql_connection_string
 PORT=3000
 ```
 
 Start the server:
 
-```bash
+```bash id="start-server"
 npm start
 ```
 
-The API server starts from:
+The backend starts from:
 
-```bash
+```bash id="entry-file"
 server.js
 ```
 
-The project origin is:
+## Environment Variables
 
-```bash
-https://github.com/omar-monayer/Final-React-Back-End.git
+| Variable       | Description                  |
+| -------------- | ---------------------------- |
+| `DATABASE_URL` | PostgreSQL connection string |
+| `PORT`         | Server port                  |
+
+Example `.env` file:
+
+```bash id="env-example"
+DATABASE_URL=postgresql://username:password@host:port/database_name
+PORT=3000
+```
+
+Do not upload the `.env` file to GitHub.
+
+## API Origin
+
+Use your deployed backend origin instead of localhost.
+
+```bash id="api-origin"
+API_ORIGIN=https://your-deployed-backend-origin.com
+```
+
+Example API request:
+
+```bash id="api-example"
+GET ${API_ORIGIN}/api/user/dashboard-companies?email=user@example.com
 ```
 
 ## Project Structure
 
-```bash
+```bash id="project-structure"
 Final-React-Back-End/
 ├── config/
 │   └── db.js
@@ -84,72 +126,28 @@ Final-React-Back-End/
 └── server.js
 ```
 
-## Main Features
+## Authentication
 
-### Authentication
+The backend uses the `userslogin` table for login.
 
-The backend includes login functionality using the `userslogin` table.
+### Login
 
-### Admin Features
-
-Admins can manage:
-
-* Company filters
-* Company unique filters
-* Locations
-* Industries
-* Sizes
-* Job titles
-
-### User Features
-
-Users can view:
-
-* Dashboard companies
-* Companies connected to their account
-* Leads connected to their companies
-* Lead email information
-
-### Database
-
-The backend connects to PostgreSQL using the `DATABASE_URL` value from the `.env` file.
-
-Database connection file:
-
-```bash
-config/db.js
+```bash id="login-endpoint"
+POST ${API_ORIGIN}/api/auth/login
 ```
 
-## API Endpoints
+Request body:
 
-### Auth Routes
-
-Base route:
-
-```bash
-/api/auth
-```
-
-| Method | Endpoint | Description |
-| ------ | -------- | ----------- |
-| POST   | `/login` | Login user  |
-
-#### POST `/api/auth/login`
-
-Logs in an existing user.
-
-Example request body:
-
-```json
+```json id="login-body"
 {
   "email": "user@example.com",
   "password": "123456"
 }
 ```
 
-Example response:
+Successful response:
 
-```json
+```json id="login-response"
 {
   "user": {
     "user_id": 1,
@@ -159,30 +157,132 @@ Example response:
 }
 ```
 
+## Admin Authorization
+
+Admin routes require the `x-role` header.
+
+```json id="admin-header"
+{
+  "x-role": "admin"
+}
+```
+
+If the header is missing or the role is not `admin`, the server returns:
+
+```json id="admin-error"
+{
+  "message": "Admin access only"
+}
+```
+
+## API Endpoints
+
+### Main Routes
+
+| Method | Endpoint           | Description                        |
+| ------ | ------------------ | ---------------------------------- |
+| GET    | `/`                | Check if the API server is running |
+| GET    | `/api/admin/check` | Check admin access                 |
+
+Example:
+
+```bash id="main-route-example"
+GET ${API_ORIGIN}/
+```
+
+Example:
+
+```bash id="admin-check-example"
+GET ${API_ORIGIN}/api/admin/check
+```
+
+Required header:
+
+```json id="admin-check-header"
+{
+  "x-role": "admin"
+}
+```
+
+---
+
+### Auth Routes
+
+Base route:
+
+```bash id="auth-base"
+/api/auth
+```
+
+| Method | Endpoint | Description |
+| ------ | -------- | ----------- |
+| POST   | `/login` | Login user  |
+
+Example:
+
+```bash id="auth-login-example"
+POST ${API_ORIGIN}/api/auth/login
+```
+
+Request body:
+
+```json id="auth-login-body"
+{
+  "email": "user@example.com",
+  "password": "123456"
+}
+```
+
 ---
 
 ### Company Filters Routes
 
 Base route:
 
-```bash
+```bash id="company-filters-base"
 /api/company-filters
 ```
 
-| Method | Endpoint      | Description                      |
-| ------ | ------------- | -------------------------------- |
-| GET    | `/`           | Get all company filters          |
-| GET    | `/companies`  | Get companies for form options   |
-| GET    | `/job-titles` | Get job titles for form options  |
-| POST   | `/`           | Add a new company filter         |
-| PUT    | `/:id`        | Update company filter by ID      |
-| DELETE | `/:id`        | Soft delete company filter by ID |
+These routes are admin protected.
 
-#### POST `/api/company-filters`
+Required header:
 
-Example request body:
+```json id="company-filters-header"
+{
+  "x-role": "admin"
+}
+```
 
-```json
+| Method | Endpoint      | Description                     |
+| ------ | ------------- | ------------------------------- |
+| GET    | `/`           | Get all company filters         |
+| GET    | `/companies`  | Get companies for the add form  |
+| GET    | `/job-titles` | Get job titles for the add form |
+| POST   | `/`           | Add a new company filter        |
+| PUT    | `/:id`        | Update company filter by ID     |
+| DELETE | `/:id`        | Delete company filter by ID     |
+
+Examples:
+
+```bash id="get-company-filters"
+GET ${API_ORIGIN}/api/company-filters
+```
+
+```bash id="get-company-filter-companies"
+GET ${API_ORIGIN}/api/company-filters/companies
+```
+
+```bash id="get-company-filter-job-titles"
+GET ${API_ORIGIN}/api/company-filters/job-titles
+```
+
+```bash id="post-company-filter"
+POST ${API_ORIGIN}/api/company-filters
+```
+
+Request body:
+
+```json id="company-filter-body"
 {
   "companyId": 1,
   "companyProfile": "Company profile text",
@@ -201,11 +301,15 @@ Example request body:
 }
 ```
 
-#### PUT `/api/company-filters/:id`
+Update example:
 
-Example request body:
+```bash id="put-company-filter"
+PUT ${API_ORIGIN}/api/company-filters/1
+```
 
-```json
+Request body:
+
+```json id="company-filter-update-body"
 {
   "smtpHost": "smtp.example.com",
   "smtpPort": 587,
@@ -220,32 +324,74 @@ Example request body:
 }
 ```
 
+Delete example:
+
+```bash id="delete-company-filter"
+DELETE ${API_ORIGIN}/api/company-filters/1
+```
+
 ---
 
 ### Company Unique Filters Routes
 
 Base route:
 
-```bash
+```bash id="company-unique-filters-base"
 /api/company-unique-filters
+```
+
+These routes are admin protected.
+
+Required header:
+
+```json id="company-unique-filters-header"
+{
+  "x-role": "admin"
+}
 ```
 
 | Method | Endpoint        | Description                                   |
 | ------ | --------------- | --------------------------------------------- |
 | GET    | `/`             | Get all company unique filters                |
-| GET    | `/locations`    | Get locations                                 |
-| GET    | `/industries`   | Get industries                                |
-| GET    | `/sizes`        | Get sizes                                     |
+| GET    | `/locations`    | Get locations for the add form                |
+| GET    | `/industries`   | Get industries for the add form               |
+| GET    | `/sizes`        | Get sizes for the add form                    |
 | GET    | `/form-options` | Get locations, industries, and sizes together |
 | POST   | `/`             | Add a new company unique filter               |
 | PUT    | `/:id`          | Update company unique filter by ID            |
-| DELETE | `/:id`          | Soft delete company unique filter by ID       |
+| DELETE | `/:id`          | Delete company unique filter by ID            |
 
-#### POST `/api/company-unique-filters`
+Examples:
 
-Example request body:
+```bash id="get-company-unique-filters"
+GET ${API_ORIGIN}/api/company-unique-filters
+```
 
-```json
+```bash id="get-company-unique-locations"
+GET ${API_ORIGIN}/api/company-unique-filters/locations
+```
+
+```bash id="get-company-unique-industries"
+GET ${API_ORIGIN}/api/company-unique-filters/industries
+```
+
+```bash id="get-company-unique-sizes"
+GET ${API_ORIGIN}/api/company-unique-filters/sizes
+```
+
+```bash id="get-company-unique-form-options"
+GET ${API_ORIGIN}/api/company-unique-filters/form-options
+```
+
+Add example:
+
+```bash id="post-company-unique-filter"
+POST ${API_ORIGIN}/api/company-unique-filters
+```
+
+Request body:
+
+```json id="company-unique-filter-body"
 {
   "locationId": 1,
   "industryId": 2,
@@ -258,74 +404,31 @@ Example request body:
 }
 ```
 
----
+Update example:
 
-### User Home Routes
-
-Base route:
-
-```bash
-/api/user
+```bash id="put-company-unique-filter"
+PUT ${API_ORIGIN}/api/company-unique-filters/1
 ```
 
-| Method | Endpoint                                      | Description                                |
-| ------ | --------------------------------------------- | ------------------------------------------ |
-| GET    | `/dashboard-companies?email=user@example.com` | Get dashboard companies for logged-in user |
-| GET    | `/companies?email=user@example.com&coflId=1`  | Get companies for logged-in user           |
-| GET    | `/leads?email=user@example.com&comscId=1`     | Get leads for logged-in user               |
+Request body:
 
-#### GET `/api/user/dashboard-companies`
-
-Required query parameter:
-
-```bash
-email
+```json id="company-unique-filter-update-body"
+{
+  "locationId": 1,
+  "industryId": 2,
+  "sizeId": 3,
+  "pages": 12,
+  "extracted": 60,
+  "leads": 25,
+  "active": true,
+  "done": true
+}
 ```
 
-Example:
+Delete example:
 
-```bash
-/api/user/dashboard-companies?email=user@example.com
-```
-
-#### GET `/api/user/companies`
-
-Required query parameter:
-
-```bash
-email
-```
-
-Optional query parameter:
-
-```bash
-coflId
-```
-
-Example:
-
-```bash
-/api/user/companies?email=user@example.com&coflId=1
-```
-
-#### GET `/api/user/leads`
-
-Required query parameter:
-
-```bash
-email
-```
-
-Optional query parameter:
-
-```bash
-comscId
-```
-
-Example:
-
-```bash
-/api/user/leads?email=user@example.com&comscId=1
+```bash id="delete-company-unique-filter"
+DELETE ${API_ORIGIN}/api/company-unique-filters/1
 ```
 
 ---
@@ -334,11 +437,66 @@ Example:
 
 Base route:
 
-```bash
+```bash id="locations-base"
 /api/locations
 ```
 
-Used to manage locations from the admin side.
+These routes are admin protected.
+
+Required header:
+
+```json id="locations-header"
+{
+  "x-role": "admin"
+}
+```
+
+| Method | Endpoint | Description           |
+| ------ | -------- | --------------------- |
+| GET    | `/`      | Get all locations     |
+| POST   | `/`      | Add a new location    |
+| PUT    | `/:id`   | Update location by ID |
+| DELETE | `/:id`   | Delete location by ID |
+
+Examples:
+
+```bash id="get-locations"
+GET ${API_ORIGIN}/api/locations
+```
+
+```bash id="post-location"
+POST ${API_ORIGIN}/api/locations
+```
+
+Request body:
+
+```json id="location-body"
+{
+  "location": "Jordan",
+  "linkedinId": "jo"
+}
+```
+
+Update example:
+
+```bash id="put-location"
+PUT ${API_ORIGIN}/api/locations/1
+```
+
+Request body:
+
+```json id="location-update-body"
+{
+  "location": "Amman",
+  "linkedinId": "amman"
+}
+```
+
+Delete example:
+
+```bash id="delete-location"
+DELETE ${API_ORIGIN}/api/locations/1
+```
 
 ---
 
@@ -346,11 +504,66 @@ Used to manage locations from the admin side.
 
 Base route:
 
-```bash
+```bash id="industries-base"
 /api/industries
 ```
 
-Used to manage industries from the admin side.
+These routes are admin protected.
+
+Required header:
+
+```json id="industries-header"
+{
+  "x-role": "admin"
+}
+```
+
+| Method | Endpoint | Description           |
+| ------ | -------- | --------------------- |
+| GET    | `/`      | Get all industries    |
+| POST   | `/`      | Add a new industry    |
+| PUT    | `/:id`   | Update industry by ID |
+| DELETE | `/:id`   | Delete industry by ID |
+
+Examples:
+
+```bash id="get-industries"
+GET ${API_ORIGIN}/api/industries
+```
+
+```bash id="post-industry"
+POST ${API_ORIGIN}/api/industries
+```
+
+Request body:
+
+```json id="industry-body"
+{
+  "industry": "Information Technology",
+  "linkedinId": "it"
+}
+```
+
+Update example:
+
+```bash id="put-industry"
+PUT ${API_ORIGIN}/api/industries/1
+```
+
+Request body:
+
+```json id="industry-update-body"
+{
+  "industry": "Software Development",
+  "linkedinId": "software"
+}
+```
+
+Delete example:
+
+```bash id="delete-industry"
+DELETE ${API_ORIGIN}/api/industries/1
+```
 
 ---
 
@@ -358,11 +571,64 @@ Used to manage industries from the admin side.
 
 Base route:
 
-```bash
+```bash id="sizes-base"
 /api/sizes
 ```
 
-Used to manage company sizes from the admin side.
+These routes are admin protected.
+
+Required header:
+
+```json id="sizes-header"
+{
+  "x-role": "admin"
+}
+```
+
+| Method | Endpoint | Description               |
+| ------ | -------- | ------------------------- |
+| GET    | `/`      | Get all company sizes     |
+| POST   | `/`      | Add a new company size    |
+| PUT    | `/:id`   | Update company size by ID |
+| DELETE | `/:id`   | Delete company size by ID |
+
+Examples:
+
+```bash id="get-sizes"
+GET ${API_ORIGIN}/api/sizes
+```
+
+```bash id="post-size"
+POST ${API_ORIGIN}/api/sizes
+```
+
+Request body:
+
+```json id="size-body"
+{
+  "size": "11-50 employees"
+}
+```
+
+Update example:
+
+```bash id="put-size"
+PUT ${API_ORIGIN}/api/sizes/1
+```
+
+Request body:
+
+```json id="size-update-body"
+{
+  "size": "51-200 employees"
+}
+```
+
+Delete example:
+
+```bash id="delete-size"
+DELETE ${API_ORIGIN}/api/sizes/1
+```
 
 ---
 
@@ -370,11 +636,118 @@ Used to manage company sizes from the admin side.
 
 Base route:
 
-```bash
+```bash id="job-titles-base"
 /api/job-titles
 ```
 
-Used to manage job titles from the admin side.
+These routes are admin protected.
+
+Required header:
+
+```json id="job-titles-header"
+{
+  "x-role": "admin"
+}
+```
+
+| Method | Endpoint | Description            |
+| ------ | -------- | ---------------------- |
+| GET    | `/`      | Get all job titles     |
+| POST   | `/`      | Add a new job title    |
+| PUT    | `/:id`   | Update job title by ID |
+| DELETE | `/:id`   | Delete job title by ID |
+
+Examples:
+
+```bash id="get-job-titles"
+GET ${API_ORIGIN}/api/job-titles
+```
+
+```bash id="post-job-title"
+POST ${API_ORIGIN}/api/job-titles
+```
+
+Request body:
+
+```json id="job-title-body"
+{
+  "jobTitle": "Marketing Manager"
+}
+```
+
+Update example:
+
+```bash id="put-job-title"
+PUT ${API_ORIGIN}/api/job-titles/1
+```
+
+Request body:
+
+```json id="job-title-update-body"
+{
+  "jobTitle": "Sales Manager"
+}
+```
+
+Delete example:
+
+```bash id="delete-job-title"
+DELETE ${API_ORIGIN}/api/job-titles/1
+```
+
+---
+
+### User Routes
+
+Base route:
+
+```bash id="user-base"
+/api/user
+```
+
+| Method | Endpoint               | Description                                    |
+| ------ | ---------------------- | ---------------------------------------------- |
+| GET    | `/dashboard-companies` | Get dashboard companies for the logged-in user |
+| GET    | `/companies`           | Get companies connected to the logged-in user  |
+| GET    | `/leads`               | Get leads connected to the logged-in user      |
+
+#### Get Dashboard Companies
+
+```bash id="get-dashboard-companies"
+GET ${API_ORIGIN}/api/user/dashboard-companies?email=user@example.com
+```
+
+Required query parameter:
+
+| Parameter | Description          |
+| --------- | -------------------- |
+| `email`   | Logged-in user email |
+
+#### Get Companies
+
+```bash id="get-user-companies"
+GET ${API_ORIGIN}/api/user/companies?email=user@example.com&coflId=1
+```
+
+Query parameters:
+
+| Parameter | Required | Description          |
+| --------- | -------- | -------------------- |
+| `email`   | Yes      | Logged-in user email |
+| `coflId`  | No       | Company filter ID    |
+
+#### Get Leads
+
+```bash id="get-user-leads"
+GET ${API_ORIGIN}/api/user/leads?email=user@example.com&comscId=1
+```
+
+Query parameters:
+
+| Parameter | Required | Description          |
+| --------- | -------- | -------------------- |
+| `email`   | Yes      | Logged-in user email |
+| `comscId` | No       | Company scraping ID  |
 
 ---
 
@@ -382,16 +755,106 @@ Used to manage job titles from the admin side.
 
 Base route:
 
-```bash
+```bash id="weather-base"
 /api/weather
 ```
 
-Used for weather API features.
+| Method | Endpoint | Description                |
+| ------ | -------- | -------------------------- |
+| GET    | `/amman` | Get weather data for Amman |
+
+Example:
+
+```bash id="get-weather-amman"
+GET ${API_ORIGIN}/api/weather/amman
+```
+
+Example response:
+
+```json id="weather-response"
+{
+  "city": "Amman",
+  "temperature": 25,
+  "windSpeed": 12,
+  "description": "Clear sky"
+}
+```
+
+## Full API List
+
+```bash id="full-api-list"
+GET     /
+GET     /api/admin/check
+
+POST    /api/auth/login
+
+GET     /api/company-filters
+GET     /api/company-filters/companies
+GET     /api/company-filters/job-titles
+POST    /api/company-filters
+PUT     /api/company-filters/:id
+DELETE  /api/company-filters/:id
+
+GET     /api/company-unique-filters
+GET     /api/company-unique-filters/locations
+GET     /api/company-unique-filters/industries
+GET     /api/company-unique-filters/sizes
+GET     /api/company-unique-filters/form-options
+POST    /api/company-unique-filters
+PUT     /api/company-unique-filters/:id
+DELETE  /api/company-unique-filters/:id
+
+GET     /api/locations
+POST    /api/locations
+PUT     /api/locations/:id
+DELETE  /api/locations/:id
+
+GET     /api/industries
+POST    /api/industries
+PUT     /api/industries/:id
+DELETE  /api/industries/:id
+
+GET     /api/sizes
+POST    /api/sizes
+PUT     /api/sizes/:id
+DELETE  /api/sizes/:id
+
+GET     /api/job-titles
+POST    /api/job-titles
+PUT     /api/job-titles/:id
+DELETE  /api/job-titles/:id
+
+GET     /api/user/dashboard-companies
+GET     /api/user/companies
+GET     /api/user/leads
+
+GET     /api/weather/amman
+```
+
+## Database Connection
+
+The database connection is configured in:
+
+```bash id="db-file"
+config/db.js
+```
+
+The backend uses PostgreSQL through the `pg` package and reads the connection string from:
+
+```bash id="database-url"
+process.env.DATABASE_URL
+```
 
 ## Notes
 
-* Make sure the PostgreSQL database is created before starting the backend.
+* Make sure the PostgreSQL database exists before starting the backend.
 * Make sure the `.env` file contains the correct `DATABASE_URL`.
-* The frontend must use the backend API origin where this server is deployed.
+* Use the deployed backend origin for frontend API requests.
 * Do not upload the `.env` file to GitHub.
-* This backend is connected to the frontend repository for the Nexsus React application.
+* Admin routes require the `x-role: admin` header.
+* Delete requests use soft delete by setting `deleted = 1`.
+* This backend is connected to the Nexsus React frontend application.
+
+## License
+
+This project uses the MIT License.
